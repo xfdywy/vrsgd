@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
  
 import pickle
 
-model   = mnistnet(minibatchsize=100, learningrate = 0.01)
+model   = mnistnet(minibatchsize=100, learningrate = 0.01,tradeoff = 0)
 
 
 model.buildnet()
@@ -98,8 +98,8 @@ all_res = {'train_acc' : train_acc ,
 
 }
             
-with open('varloss_1.pkl','wb') as f:
-    pickle.dump(all_res)      
+with open('varloss_0.pkl','wb') as f:
+    pickle.dump(all_res,f)      
 #    model.fill_train_data()
 #    model.eval_grad()
 #    print(model.v_grad_max)

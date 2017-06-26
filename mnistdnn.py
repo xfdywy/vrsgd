@@ -21,7 +21,7 @@ trunc_normal = lambda stddev: tf.truncated_normal_initializer(stddev=stddev)
 import numpy as np
 import pickle
 class mnistnet:
-    def __init__(self,num_classes=10,minibatchsize=1,imagesize=28,dropout_keep_prob=1 ,scope='cifarnet' ,learningrate = 0.001,momentum = 0.5):
+    def __init__(self,num_classes=10,minibatchsize=1,imagesize=28,dropout_keep_prob=1 ,scope='cifarnet' ,learningrate = 0.001,momentum = 0.5,tradeoff=0):
        self.num_classes=num_classes  
        self.batch_size=minibatchsize
        self.imagesize = imagesize
@@ -37,6 +37,7 @@ class mnistnet:
        self.mt = momentum
        
        self.epoch = 0
+       self.tradeoff = tradeoff
 
 
        
@@ -158,7 +159,7 @@ class mnistnet:
             self.meanloss = tf.reduce_mean(self.loss)
             
             self.var = tf.reduce_mean(tf.pow(self.loss - tf.reduce_mean(self.loss),2)) 
-            self.vrloss = self.meanloss + 5 * self.var
+            self.vrloss = self.meanloss + self.tradeoff * self.var
             
             self.parameters = tf.trainable_variables()
             
