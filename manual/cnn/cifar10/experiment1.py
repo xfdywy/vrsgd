@@ -80,13 +80,17 @@ for ii in range(1000000):
 #            print('learning rate decrease to ', model.lr , np.mean(temploss[-100:-50]) -np.mean(temploss[-50:]))
 #            print('learning rate decrease to ', model.lr,file = printoutfile)
 
-    if model.lr > 1e-5 and model.epoch % 2 == 0:
-        model.lr = model.lr / 2.0
+
         
     
     
     
     if model.epoch_final == True:
+        if model.lr > 1e-5 and model.epoch % 2 == 0:
+            model.lr = model.lr / 2.0
+            print('learning rate decrease to ', model.lr )
+            print('learning rate decrease to ', model.lr,file = printoutfile)
+
         model.eval_weight()
         weight.append(model.v_weight)
 #            model.save_model('exp1')
