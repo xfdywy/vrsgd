@@ -7,7 +7,7 @@ import pickle
 
 tradeoff = 0
 
-model   = cifar10cnnnet(minibatchsize=100, learningrate = 0.1,tradeoff = tradeoff)
+model   = cifar10cnnnet(minibatchsize=100, learningrate = 0.001,tradeoff = tradeoff)
 
 
 model.buildnet()
