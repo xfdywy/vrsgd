@@ -5,11 +5,7 @@ import matplotlib.pyplot as plt
  
 import pickle
 
-<<<<<<< HEAD
 tradeoff = 0.1
-=======
-tradeoff = 0
->>>>>>> 6e02968c14afc5023a4ed6ead20688c67e6997ac
 
 model   = cifar10cnnnet(minibatchsize=100, learningrate = 0.1,tradeoff = tradeoff)
 
@@ -46,7 +42,7 @@ weight = []
 grad_norm = []
 
 dis =[]
-model.lr = 0.1
+#model.lr = 0.1
 
 file_index = '_1'
 
@@ -59,12 +55,9 @@ print(file_name)
     # weight.append(model.v_weight)
     # model.lr *= 0.9
 temp_step =0
-<<<<<<< HEAD
 
 temploss = []
 
-=======
->>>>>>> 6e02968c14afc5023a4ed6ead20688c67e6997ac
 for ii in range(1000000): 
 
     if model.epoch >50:
@@ -74,27 +67,30 @@ for ii in range(1000000):
     model.global_step = 0
     model.next_batch()   
     model.train_net( )
-<<<<<<< HEAD
-    model.calloss()
-    temploss.append(model.v_vrloss)
+#    model.calloss()
+#    temploss.append(model.v_vrloss)
     
     
-    temp_step += 1
+#    temp_step += 1
+#        
+#
+#    if  temp_step >100 and  np.mean(temploss[-100:]) -np.mean(temploss[-50:])  < (model.lr/10000.0 ) and model.lr > 1e-6:
+#            model.lr = model.lr / 10.0
+#            temp_step = 0
+#            print('learning rate decrease to ', model.lr , np.mean(temploss[-100:-50]) -np.mean(temploss[-50:]))
+#            print('learning rate decrease to ', model.lr,file = printoutfile)
+
+
         
-
-    if  temp_step >5 and  np.mean(temploss[-5:]) -temploss[-1]  < (model.lr/1000.0 ) and model.lr > 1e-9:
-            model.lr = model.lr / 10.0
-            temp_step = 0
-            print('learning rate decrease to ', model.lr)
-            print('learning rate decrease to ', model.lr,file = printoutfile)
-
     
     
-    
-=======
->>>>>>> 6e02968c14afc5023a4ed6ead20688c67e6997ac
     
     if model.epoch_final == True:
+        if model.lr > 1e-5 and model.epoch % 2 == 0:
+            model.lr = model.lr / 2.0
+            print('learning rate decrease to ', model.lr )
+            print('learning rate decrease to ', model.lr,file = printoutfile)
+
         model.eval_weight()
         weight.append(model.v_weight)
 #            model.save_model('exp1')
@@ -124,17 +120,6 @@ for ii in range(1000000):
               % (model.epoch,train_meanloss[-1] , test_meanloss[-1] , train_vrloss[-1],test_vrloss[-1],train_acc[-1],test_acc[-1], train_var[-1],test_var[-1],model.lr) ,file = printoutfile)
 
 
-<<<<<<< HEAD
-=======
-        temp_step += 1
-        
-
-        if  temp_step >5 and  np.mean(train_vrloss[-5:]) -train_vrloss[-1]  < (model.lr/1000.0 ) and model.lr > 1e-9:
-            model.lr = model.lr / 10.0
-            temp_step = 0
-            print('learning rate decrease to ', model.lr)
-            print('learning rate decrease to ', model.lr,file = printoutfile)
->>>>>>> 6e02968c14afc5023a4ed6ead20688c67e6997ac
             
 #            print('epoch',model.epoch,'meanloss', model.v_meanloss,'vrloss', model.v_vrloss , 'variance', model.v_var,'acc',model.v_acc,'lr',model.lr)
            
