@@ -1,3 +1,0 @@
-learning rate decrease to  0.01
-learning rate decrease to  0.001
-learning rate decrease to  0.0001
