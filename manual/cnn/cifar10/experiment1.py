@@ -1,3 +1,4 @@
+from __future__ import print_function
 from cifar10cnn import cifar10cnnnet
 import numpy as np
 import matplotlib.pyplot as plt

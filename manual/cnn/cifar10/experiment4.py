@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Jun 27 15:17:59 2017
-
-@author: v-yuewng
-"""
+from __future__ import print_function
 
 from cifar10cnn import cifar10cnnnet
 import numpy as np
