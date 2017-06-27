@@ -143,7 +143,7 @@ class cifar10cnnnet:
             self.init_allvars = tf.global_variables_initializer()
             
             self.saver = tf.train.Saver()
-            self.info['nettype'] = 'dnn'
+            self.info['nettype'] = 'cnn'
             
      
     def init_net(self ):
@@ -303,13 +303,13 @@ class cifar10cnnnet:
         
  
         
-    def save_model(self ,path, name):
-        tfmodel_name = name + '_' + '_'.join(self.info.values())
-        self.saver.save(self.sess,path+tfmodel_name)
-    def save_weight(self,name):    
-        tfmodel_name = name + '_' + '_'.join(self.info.values())
-        with open('./save/dnn/'+tfmodel_name+'.pkl','wb') as f:
-            pickle.dump(self.v_weight , f)
+#    def save_model(self ,path, name):
+#        tfmodel_name = name + '_' + '_'.join(self.info.values())
+#        self.saver.save(self.sess,path+tfmodel_name)
+#    def save_weight(self,name):    
+#        tfmodel_name = name + '_' + '_'.join(self.info.values())
+#        with open('./save/dnn/'+tfmodel_name+'.pkl','wb') as f:
+#            pickle.dump(self.v_weight , f)
             
             
     def cal_norm(self):

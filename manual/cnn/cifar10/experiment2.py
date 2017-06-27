@@ -1,10 +1,17 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Jun 27 15:17:59 2017
+
+@author: v-yuewng
+"""
+
 from cifar10cnn import cifar10cnnnet
 import numpy as np
 import matplotlib.pyplot as plt
  
 import pickle
 
-tradeoff = 0.01
+tradeoff = 0.05
 
 model   = cifar10cnnnet(minibatchsize=100, learningrate = 0.1,tradeoff = tradeoff)
 
