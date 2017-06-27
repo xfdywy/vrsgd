@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
  
 import pickle
 
-tradeoff = 0.01
+tradeoff = 0.1
 
 model   = cifar10cnnnet(minibatchsize=100, learningrate = 0.1,tradeoff = tradeoff)
 
