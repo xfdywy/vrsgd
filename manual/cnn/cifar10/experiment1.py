@@ -42,7 +42,7 @@ weight = []
 grad_norm = []
 
 dis =[]
-model.lr = 0.1
+#model.lr = 0.1
 
 file_index = '_1'
 
