@@ -79,7 +79,7 @@ for ii in range(1000000):
         train_var.append(model.v_var)
         model.calacc()
         train_acc.append(model.v_acc)
-         
+             
         model.fill_test_data()
         model.calloss()
         test_vrloss.append(model.v_vrloss)

@@ -187,8 +187,8 @@ class cifar10cnnnet:
      
             
     def fill_train_data(self):
-        self.datax = self.x_train
-        self.datay = self.y_train
+        self.datax = self.x_train[:20000]
+        self.datay = self.y_train[:20000]
     
     def fill_test_data(self):
         self.datax = self.x_test
