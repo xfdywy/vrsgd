@@ -114,7 +114,7 @@ class mnistnet:
             
             self.logits = tf.matmul(net,para_fc5) + para_fc5_bias
             
-            self.loss = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits,labels = y_one_hot)
+            self.loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logits,labels =self.label )
             
             self.loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits = self.logits,labels = self.label)
             self.meanloss = tf.reduce_mean(self.loss)
@@ -145,6 +145,7 @@ class mnistnet:
         self.sess.run(self.init_allvars)
         self.global_step = 0
         self.data_point = 0
+        self.epoch_final = False
         
     def data_mode(self,mode_data) :
         
@@ -189,24 +190,27 @@ class mnistnet:
  
         
     def next_batch(self):
+        
+        if self.data_point >= self.one_epoch_iter_num -1:
+            self.epoch_final = True
+        
+        if self.epoch_final == True:
+            self.data_point =0
+            self.shuffledata()
+            self.epoch = self.epoch+1
+            self.epoch_final = False        
+        
         if self.mode_data == 1: 
             
-            if self.data_point >= self.one_epoch_iter_num:
-                self.data_point =0
-                self.shuffledata()
-                self.epoch = self.epoch+1
+
             
             sample = np.random.randint(0,self.test_data_num,[self.batch_size])
             self.datax = self.x_train[sample  ]
             self.datay = self.y_train[sample]
             self.data_point += 1
             
-        elif self.mode_data ==2:   
-            
-            if self.data_point >= self.one_epoch_iter_num:
-                self.data_point =0
-                self.shuffledata()
-                self.epoch = self.epoch+1
+        elif self.mode_data ==2:             
+ 
           
             sample =  self.data_index[self.batch_index[self.data_point][0] : self.batch_index[self.data_point][1] ]
       

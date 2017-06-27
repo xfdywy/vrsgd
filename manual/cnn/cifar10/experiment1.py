@@ -67,20 +67,22 @@ for ii in range(1000000):
     model.global_step = 0
     model.next_batch()   
     model.train_net( )
-    model.calloss()
-    temploss.append(model.v_vrloss)
+#    model.calloss()
+#    temploss.append(model.v_vrloss)
     
     
-    temp_step += 1
+#    temp_step += 1
+#        
+#
+#    if  temp_step >100 and  np.mean(temploss[-100:]) -np.mean(temploss[-50:])  < (model.lr/10000.0 ) and model.lr > 1e-6:
+#            model.lr = model.lr / 10.0
+#            temp_step = 0
+#            print('learning rate decrease to ', model.lr , np.mean(temploss[-100:-50]) -np.mean(temploss[-50:]))
+#            print('learning rate decrease to ', model.lr,file = printoutfile)
+
+    if model.lr > 1e-5 and model.epoch % 2 == 0:
+        model.lr = model.lr / 2.0
         
-
-    if  temp_step >100 and  np.mean(temploss[-100:]) -np.mean(temploss[-50:])  < (model.lr/10000.0 ) and model.lr > 1e-6:
-            model.lr = model.lr / 10.0
-            temp_step = 0
-            print('learning rate decrease to ', model.lr , np.mean(temploss[-100:-50]) -np.mean(temploss[-50:]))
-            print('learning rate decrease to ', model.lr,file = printoutfile)
-
-    
     
     
     
