@@ -6,8 +6,7 @@ import matplotlib.pyplot as plt
 import pickle
 
 tradeoff = 0.01
-
-model   = cifar10cnnnet(minibatchsize=100, learningrate = 0.1,tradeoff = tradeoff)
+model   = cifar10cnnnet(minibatchsize=32, learningrate = 0.01,tradeoff = tradeoff,momentum=0.9,decay = 1e-6)
 
 
 model.buildnet()
@@ -44,7 +43,7 @@ grad_norm = []
 dis =[]
 #model.lr = 0.1
 
-file_index = '_1'
+file_index = '_test'
 
 file_name = '_'.join(model.info.values())+file_index
 
@@ -60,7 +59,7 @@ temploss = []
 
 for ii in range(1000000): 
 
-    if model.epoch >50:
+    if model.epoch >30:
         break
 
 
@@ -86,23 +85,22 @@ for ii in range(1000000):
     
     
     if model.epoch_final == True:
-        if model.lr > 1e-5 and model.epoch % 2 == 0:
-            model.lr = model.lr / 2.0
-            print('learning rate decrease to ', model.lr )
-            print('learning rate decrease to ', model.lr,file = printoutfile)
+#        if model.lr > 1e-5 and model.epoch % 2 == 0:
+#            model.lr = model.lr / 2.0
+#            print('learning rate decrease to ', model.lr )
+#            print('learning rate decrease to ', model.lr,file = printoutfile)
 
         model.eval_weight()
         weight.append(model.v_weight)
 #            model.save_model('exp1')
     
 
-    if model.data_point % (model.one_epoch_iter_num // 5 ) == 0 :
-        model.fill_train_data()
-        model.calloss()
+    if model.data_point % (model.one_epoch_iter_num // 2 ) == 0 :
+        model.evaluate_train()
         train_vrloss.append(model.v_vrloss)
         train_meanloss.append(model.v_meanloss)    
         train_var.append(model.v_var)
-        model.calacc()
+ 
         train_acc.append(model.v_acc)
              
         model.fill_test_data()

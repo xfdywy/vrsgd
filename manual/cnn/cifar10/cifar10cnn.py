@@ -31,7 +31,7 @@ trunc_normal = lambda stddev: tf.truncated_normal_initializer(stddev=stddev)
 import numpy as np
 import pickle
 class cifar10cnnnet:
-    def __init__(self,num_classes=10,minibatchsize=1,imagesize=32,dropout_keep_prob=1 ,scope='cifarnet' ,learningrate = 0.001,momentum = 0.5,tradeoff = 0):
+    def __init__(self,num_classes=10,minibatchsize=1,imagesize=32,dropout_keep_prob=1 ,scope='cifarnet' ,learningrate = 0.001,momentum = 0.5,tradeoff = 0,decay=0):
        self.num_classes=num_classes  
        self.batch_size=minibatchsize
        self.imagesize = imagesize
@@ -49,6 +49,7 @@ class cifar10cnnnet:
        self.epoch = 0
        self.tradeoff = tradeoff
        self.info['tradeoff'] = str(self.tradeoff).replace('.','')
+       self.decay = decay
        
 
        
@@ -101,12 +102,12 @@ class cifar10cnnnet:
 
             net = Conv2D(32, (3, 3), padding='same',activation='relu' )(self.images)
             net = Conv2D(32, (3, 3), padding='same',activation='relu' )(net)
-            net = MaxPooling2D((2, 2), strides=(2, 2), padding='same')(net)
+            net = MaxPooling2D((2, 2) , padding='same')(net)
             net = tf.nn.dropout(net,self.dropout_keep_prob)
 
             net = Conv2D(64, (3, 3), padding='same',activation='relu' )(net)
             net = Conv2D(64, (3, 3), padding='same',activation='relu' )(net)
-            net = MaxPooling2D((2, 2), strides=(2, 2), padding='same')(net)
+            net = MaxPooling2D((2, 2) , padding='same')(net)
             net = tf.nn.dropout(net,self.dropout_keep_prob)
  
             net = Flatten()(net)
@@ -166,7 +167,7 @@ class cifar10cnnnet:
             
     def train_mode(self,mode_train):
         self.mode_train = mode_train
-        self.decay = 0
+#        self.decay = 0
         
         if mode_train == 1:           
             self.info['opti_method'] = 'sgd'
@@ -186,9 +187,36 @@ class cifar10cnnnet:
             pass
      
             
-    def fill_train_data(self):
-        self.datax = self.x_train[:20000]
-        self.datay = self.y_train[:20000]
+#    def fill_train_data(self):
+#        self.datax = self.x_train[:20000]
+#        self.datay = self.y_train[:20000]
+
+    def evaluate_train(self):
+#        vrlosstemp = []
+#        meanlosstemp = []
+        acctemp = []
+#        vartemp = []
+        losstemp = []
+        
+        
+        for ii in range(5):
+            ind = [ii*10000 , (ii+1)*10000]
+            self.datax = self.x_train[ind[0] : ind[1]]
+            self.datay = self.y_train[ind[0] : ind[1]]
+ 
+            self.calacc()
+            acctemp.append(self.v_acc) 
+            losstemp.append(self.calallloss())
+            
+        self.v_acc = np.mean(acctemp)
+        self.v_meanloss = np.mean(losstemp)
+        self.v_var = np.var(losstemp)
+        self.v_vrloss = self.v_meanloss + self.v_var * self.tradeoff
+            
+            
+            
+            
+            
     
     def fill_test_data(self):
         self.datax = self.x_test
@@ -210,7 +238,7 @@ class cifar10cnnnet:
             
 
             
-            sample = np.random.randint(0,self.test_data_num,[self.batch_size])
+            sample = np.random.randint(0,self.train_data_num,[self.batch_size])
             self.datax = self.x_train[sample  ]
             self.datay = self.y_train[sample]
             self.data_point += 1
@@ -234,13 +262,14 @@ class cifar10cnnnet:
                      self.learningrate : self.lr , self.dropout_keep_prob : self.dp,
                      self.momentum : self.mt}
         
-        if mode_train == 1:           
+        if mode_train == 1:      
+            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
 #            self.info['opti_method'] = 'sgd'
             self.sess.run(self.train_sgd,self.feed_dict)
-#            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
+            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
             
         elif mode_train ==2 :
-#            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
+            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
 #            self.info['opti_method'] = 'momentum'
             self.sess.run(self.train_momentum,self.feed_dict)
             
@@ -288,7 +317,8 @@ class cifar10cnnnet:
         self.cal_norm()
 #        self.cal_norm_max()
 #        self.cal_norml1()
-
+    def calallloss(self):
+        return(self.sess.run(self.loss,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp}))
         
         
 #    def eval_hess(self):
