@@ -23,7 +23,7 @@ trunc_normal = lambda stddev: tf.truncated_normal_initializer(stddev=stddev)
 import numpy as np
 import pickle
 class cifar10net:
-    def __init__(self,num_classes=10,minibatchsize=1,imagesize=32,dropout_keep_prob=1 ,scope='cifarnet' ,learningrate = 0.001,momentum = 0.5,tradeoff = 0):
+    def __init__(self,num_classes=10,minibatchsize=1,imagesize=32,dropout_keep_prob=1 ,scope='cifarnet' ,learningrate = 0.001,momentum = 0.5,tradeoff = 0,decay=0):
         self.num_classes=num_classes  
         self.batch_size=minibatchsize
         self.imagesize = imagesize
@@ -41,6 +41,7 @@ class cifar10net:
         self.epoch = 0
         self.tradeoff = tradeoff
         self.info['tradeoff'] = str(self.tradeoff).replace('.','')
+        self.decay = decay
        
 
        
@@ -195,7 +196,7 @@ class cifar10net:
             
     def train_mode(self,mode_train):
         self.mode_train = mode_train
-        self.decay = 0
+#        self.decay = 0
         
         if mode_train == 1:           
             self.info['opti_method'] = 'sgd'
@@ -203,7 +204,7 @@ class cifar10net:
  
             
         elif mode_train ==2 :
-            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
+#            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
             self.info['opti_method'] = 'momentum'
  
             
