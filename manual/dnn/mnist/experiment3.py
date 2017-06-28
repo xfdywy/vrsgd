@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
  
 import pickle
-tradeoff =0
+tradeoff =0.5
 model   = mnistnet(minibatchsize=128, learningrate = 0.1,tradeoff = tradeoff,momentum=0.9,decay=1e-7)
 
 
@@ -41,7 +41,7 @@ grad_norm = []
 dis =[]
 #model.lr = 0.1
 
-file_index = '_test'
+file_index = '_3'
 
 file_name = '_'.join(model.info.values())+file_index
 
