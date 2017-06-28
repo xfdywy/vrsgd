@@ -1,10 +1,10 @@
-from cifar100dnn import cifar100net
+from mnistdnn import mnistnet
 import numpy as np
 import matplotlib.pyplot as plt
  
 import pickle
 tradeoff =0
-model   = cifar100net(minibatchsize=128, learningrate = 0.1,tradeoff = tradeoff,momentum=0.9,decay=1e-7)
+model   = mnistnet(minibatchsize=128, learningrate = 0.1,tradeoff = tradeoff,momentum=0.9,decay=1e-7)
 
 
 model.buildnet()
@@ -14,7 +14,7 @@ model.loaddata()
 model.init_net()
 
 model.data_mode(1)
-model.train_mode(1)
+model.train_mode(2)
 
 epoch=0
 

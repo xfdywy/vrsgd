@@ -21,7 +21,7 @@ trunc_normal = lambda stddev: tf.truncated_normal_initializer(stddev=stddev)
 import numpy as np
 import pickle
 class mnistnet:
-    def __init__(self,num_classes=10,minibatchsize=1,imagesize=28,dropout_keep_prob=1 ,scope='cifarnet' ,learningrate = 0.001,momentum = 0.5,tradeoff=0):
+    def __init__(self,num_classes=10,minibatchsize=1,imagesize=28,dropout_keep_prob=1 ,scope='cifarnet' ,learningrate = 0.001,momentum = 0.5,tradeoff=0,decay = 0):
         self.num_classes=num_classes  
         self.batch_size=minibatchsize
         self.imagesize = imagesize
@@ -40,6 +40,7 @@ class mnistnet:
         self.epoch = 0
         self.tradeoff = tradeoff
         self.info['tradeoff'] = str(self.tradeoff).replace('.','')
+        self.decay = decay
 
 
 
@@ -88,16 +89,16 @@ class mnistnet:
         with tf.variable_scope(self.scope, 'CifarNet', [self.images, self.num_classes]):
 
 
-            para_fc1 = tf.get_variable('para_fc1',[28*28,64])
-            para_fc1_bias = tf.get_variable('para_fc1_bias',[ 64])
+            para_fc1 = tf.get_variable('para_fc1',[28*28,512])
+            para_fc1_bias = tf.get_variable('para_fc1_bias',[ 512])
             
-            para_fc2 = tf.get_variable('para_fc2',[64,32])
-            para_fc2_bias = tf.get_variable('para_fc2_bias',[ 32])
-            
-            para_fc3 = tf.get_variable('para_fc3',[32,16])
-            para_fc3_bias = tf.get_variable('para_fc3_bias',[ 16])
-            
-            para_fc5 = tf.get_variable('para_fc5',[16,10])
+#            para_fc2 = tf.get_variable('para_fc2',[64,32])
+#            para_fc2_bias = tf.get_variable('para_fc2_bias',[ 32])
+#            
+#            para_fc3 = tf.get_variable('para_fc3',[32,16])
+#            para_fc3_bias = tf.get_variable('para_fc3_bias',[ 16])
+#            
+            para_fc5 = tf.get_variable('para_fc5',[512,10])
             para_fc5_bias = tf.get_variable('para_fc5_bias',[ 10])
 
             
@@ -105,11 +106,11 @@ class mnistnet:
             net = tf.nn.relu(tf.matmul(net,para_fc1) + para_fc1_bias)
             net = tf.nn.dropout(x = net, keep_prob =  self.dropout_keep_prob , name='dropout1') 
             
-            net = tf.nn.relu(tf.matmul(net,para_fc2) + para_fc2_bias)
-            net = tf.nn.dropout(x = net, keep_prob =  self.dropout_keep_prob , name='dropout2') 
-            
-            net = tf.nn.relu(tf.matmul(net,para_fc3) + para_fc3_bias)
-            net = tf.nn.dropout(x = net, keep_prob =  self.dropout_keep_prob , name='dropout3') 
+#            net = tf.nn.relu(tf.matmul(net,para_fc2) + para_fc2_bias)
+#            net = tf.nn.dropout(x = net, keep_prob =  self.dropout_keep_prob , name='dropout2') 
+#            
+#            net = tf.nn.relu(tf.matmul(net,para_fc3) + para_fc3_bias)
+#            net = tf.nn.dropout(x = net, keep_prob =  self.dropout_keep_prob , name='dropout3') 
             
             
             self.logits = tf.matmul(net,para_fc5) + para_fc5_bias
@@ -160,15 +161,16 @@ class mnistnet:
             
     def train_mode(self,mode_train):
         self.mode_train = mode_train
-        self.decay = 0
+#        self.decay = 0
         
-        if mode_train == 1:           
+        if mode_train == 1: 
+#            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
             self.info['opti_method'] = 'sgd'
 #            self.decay = 1e-8
  
             
         elif mode_train ==2 :
-            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
+#            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
             self.info['opti_method'] = 'momentum'
  
             
@@ -204,7 +206,7 @@ class mnistnet:
             
 
             
-            sample = np.random.randint(0,self.test_data_num,[self.batch_size])
+            sample = np.random.randint(0,self.train_data_num,[self.batch_size])
             self.datax = self.x_train[sample  ]
             self.datay = self.y_train[sample]
             self.data_point += 1

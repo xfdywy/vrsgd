@@ -239,7 +239,7 @@ class cifar10net:
             
 
             
-            sample = np.random.randint(0,self.test_data_num,[self.batch_size])
+            sample = np.random.randint(0,self.train_data_num,[self.batch_size])
             self.datax = self.x_train[sample  ]
             self.datay = self.y_train[sample]
             self.data_point += 1
@@ -265,11 +265,12 @@ class cifar10net:
         
         if mode_train == 1:           
 #            self.info['opti_method'] = 'sgd'
+            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
             self.sess.run(self.train_sgd,self.feed_dict)
-#            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
+
             
         elif mode_train ==2 :
-#            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
+            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
 #            self.info['opti_method'] = 'momentum'
             self.sess.run(self.train_momentum,self.feed_dict)
             

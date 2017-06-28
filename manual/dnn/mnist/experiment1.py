@@ -41,7 +41,7 @@ grad_norm = []
 dis =[]
 #model.lr = 0.1
 
-file_index = '_2'
+file_index = '_test'
 
 file_name = '_'.join(model.info.values())+file_index
 
@@ -68,13 +68,13 @@ for ii in range(1000000):
     
     temp_step += 1
         
-
-    if  temp_step >200 and  np.mean(temp_loss[-200:-100]) -  np.mean(temp_loss[-100:]) < (model.lr/10000.0 ) and model.lr > 1e-6:
-            model.lr = model.lr / 10.0
-            temp_step = 0
-            print('learning rate decrease to ', model.lr, np.mean(temp_loss[-200:-100]) -  np.mean(temp_loss[-100:]))
-            print('learning rate decrease to ', model.lr,file = printoutfile)
-    
+#
+#    if  temp_step >200 and  np.mean(temp_loss[-200:-100]) -  np.mean(temp_loss[-100:]) < -0.001 and model.lr > 1e-6:
+#            model.lr = model.lr / 2.0
+#            temp_step = 0
+#            print('learning rate decrease to ', model.lr, np.mean(temp_loss[-200:-100]) -  np.mean(temp_loss[-100:]))
+#            print('learning rate decrease to ', model.lr,file = printoutfile)
+#    
     
     
     if model.epoch_final == True:
