@@ -5,8 +5,10 @@ import matplotlib.pyplot as plt
  
 import pickle
 
-tradeoff = 0.001
-model   = cifar10cnnnet(minibatchsize=32, learningrate = 0.01,tradeoff = tradeoff,momentum=0.9,decay = 1e-6)
+tradeoff = 1
+tradeoff2 = 0.1
+
+model   = cifar10cnnnet(minibatchsize=32, learningrate = 0.01,tradeoff = tradeoff , tradeoff2=tradeoff2,momentum=0.9,decay = 1e-6)
 
 
 model.buildnet()
@@ -32,6 +34,9 @@ test_vrloss =[]
 train_var =[]
 test_var= []
 
+train_entropy=[]
+test_entropy=[]
+
 
 
 
@@ -43,7 +48,7 @@ grad_norm = []
 dis =[]
 #model.lr = 0.1
 
-file_index = '_test'
+file_index = '_entropy'
 
 file_name = '_'.join(model.info.values())+file_index
 
@@ -95,12 +100,12 @@ for ii in range(1000000):
 #            model.save_model('exp1')
     
 
-    if model.data_point % (model.one_epoch_iter_num // 2 ) == 0 :
+    if model.data_point % (model.one_epoch_iter_num // 5 ) == 0 :
         model.evaluate_train()
         train_vrloss.append(model.v_vrloss)
         train_meanloss.append(model.v_meanloss)    
         train_var.append(model.v_var)
- 
+        train_entropy.append(model.v_entropy) 
         train_acc.append(model.v_acc)
              
         model.fill_test_data()
@@ -108,14 +113,15 @@ for ii in range(1000000):
         test_vrloss.append(model.v_vrloss)
         test_meanloss.append(model.v_meanloss)          
         test_var.append(model.v_var)
+        test_entropy.append(model.v_entropy)
         model.calacc()
         test_acc.append(model.v_acc)
         
         
-        print("##epoch:%d## meanloss : %f/%f , vrloss : %f/%f , acc : %f/%f , variance : %f/%f , lr : %f" 
-              % (model.epoch,train_meanloss[-1] , test_meanloss[-1] , train_vrloss[-1],test_vrloss[-1],train_acc[-1],test_acc[-1], train_var[-1],test_var[-1],model.lr))
-        print("##epoch:%d## meanloss : %f/%f , vrloss : %f/%f , acc : %f/%f , variance : %f/%f , lr : %f" 
-              % (model.epoch,train_meanloss[-1] , test_meanloss[-1] , train_vrloss[-1],test_vrloss[-1],train_acc[-1],test_acc[-1], train_var[-1],test_var[-1],model.lr) ,file = printoutfile)
+        print("##epoch:%d## meanloss : %f/%f , vrloss : %f/%f , acc : %f/%f , variance : %f/%f , entropy : %f/%f, lr : %f" 
+              % (model.epoch,train_meanloss[-1] , test_meanloss[-1] , train_vrloss[-1],test_vrloss[-1],train_acc[-1],test_acc[-1], train_var[-1],test_var[-1],train_entropy[-1],test_entropy[-1],model.lr))
+        print("##epoch:%d## meanloss : %f/%f , vrloss : %f/%f , acc : %f/%f , variance : %f/%f , entropy : %f/%f, lr : %f" 
+              % (model.epoch,train_meanloss[-1] , test_meanloss[-1] , train_vrloss[-1],test_vrloss[-1],train_acc[-1],test_acc[-1], train_var[-1],test_var[-1],train_entropy[-1],test_entropy[-1],model.lr) ,file = printoutfile)
 
 
             
@@ -130,9 +136,11 @@ all_res = {'train_acc' : train_acc ,
 'test_vrloss'  : test_vrloss,
 'train_var'  : train_var , 
 'test_acc' : test_acc,
+'train_entropy' : train_entropy,
 'test_meanloss' : test_meanloss,
 'test_vrloss'  : test_vrloss,
-'test_var'  : test_var    
+'test_var'  : test_var   ,
+'test_entropy' : test_entropy 
 
 }
             

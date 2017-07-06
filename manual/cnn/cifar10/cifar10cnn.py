@@ -31,7 +31,7 @@ trunc_normal = lambda stddev: tf.truncated_normal_initializer(stddev=stddev)
 import numpy as np
 import pickle
 class cifar10cnnnet:
-    def __init__(self,num_classes=10,minibatchsize=1,imagesize=32,dropout_keep_prob=1 ,scope='cifarnet' ,learningrate = 0.001,momentum = 0.5,tradeoff = 0,decay=0):
+    def __init__(self,num_classes=10,minibatchsize=1,imagesize=32,dropout_keep_prob=1 ,scope='cifarnet' ,learningrate = 0.001,momentum = 0.5,tradeoff = 0,decay=0,tradeoff2=0):
        self.num_classes=num_classes  
        self.batch_size=minibatchsize
        self.imagesize = imagesize
@@ -48,6 +48,7 @@ class cifar10cnnnet:
        
        self.epoch = 0
        self.tradeoff = tradeoff
+       self.tradeoff2 = tradeoff2
        self.info['tradeoff'] = str(self.tradeoff).replace('.','')
        self.decay = decay
        
@@ -115,7 +116,7 @@ class cifar10cnnnet:
             net = tf.nn.dropout(net,self.dropout_keep_prob)
 
             self.logits = Dense(10)(net)
- 
+            self.prob = tf.nn.softmax(self.logits)
 
              
 
@@ -124,8 +125,11 @@ class cifar10cnnnet:
             self.loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits = self.logits,labels = self.label)
             self.meanloss = tf.reduce_mean(self.loss)
             
-            self.var = tf.reduce_mean(tf.pow(self.loss - tf.reduce_mean(self.loss),2)) 
-            self.vrloss = self.meanloss + self.tradeoff * self.var
+            self.var = tf.sqrt( tf.reduce_mean(tf.pow(self.loss - tf.reduce_mean(self.loss),2)) )
+            
+            self.entropy = -1 * tf.reduce_mean( tf.reduce_sum( self.prob * tf.log(self.prob),1 ) )
+            
+            self.vrloss = self.meanloss + self.tradeoff * self.var + self.tradeoff2 * self.entropy
 
             self.parameters = tf.trainable_variables()
             
@@ -197,6 +201,7 @@ class cifar10cnnnet:
         acctemp = []
 #        vartemp = []
         losstemp = []
+        entropytemp = []
         
         
         for ii in range(5):
@@ -205,13 +210,17 @@ class cifar10cnnnet:
             self.datay = self.y_train[ind[0] : ind[1]]
  
             self.calacc()
+            self.calentropy()
+            
             acctemp.append(self.v_acc) 
             losstemp.append(self.calallloss())
+            entropytemp.append(self.v_entropy)
             
         self.v_acc = np.mean(acctemp)
         self.v_meanloss = np.mean(losstemp)
         self.v_var = np.var(losstemp)
         self.v_vrloss = self.v_meanloss + self.v_var * self.tradeoff
+        self.v_entropy = np.mean(self.v_entropy)
             
             
             
@@ -303,7 +312,7 @@ class cifar10cnnnet:
         self.v_meanloss = self.sess.run(self.meanloss,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
         self.v_vrloss = self.sess.run(self.vrloss,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
         self.v_var = self.sess.run(self.var,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
- 
+        self.v_entropy = self.sess.run(self.entropy,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
             
     def calacc(self):
         predict = self.sess.run(self.logits,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
@@ -319,7 +328,8 @@ class cifar10cnnnet:
 #        self.cal_norml1()
     def calallloss(self):
         return(self.sess.run(self.loss,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp}))
-        
+    def calentropy(self):
+        self.v_entropy = self.sess.run(self.entropy,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
         
 #    def eval_hess(self):
 #        if self.hess_op == None:
