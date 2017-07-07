@@ -3,8 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
  
 import pickle
-tradeoff =0.5
-model   = mnistnet(minibatchsize=128, learningrate = 0.1,tradeoff = tradeoff,momentum=0.9,decay=1e-7)
+tradeoff =0
+model   = mnistnet(minibatchsize=100, learningrate = 0.1,tradeoff = tradeoff)
 
 
 model.buildnet()
@@ -14,7 +14,7 @@ model.loaddata()
 model.init_net()
 
 model.data_mode(1)
-model.train_mode(2)
+model.train_mode(1)
 
 epoch=0
 
@@ -41,7 +41,7 @@ grad_norm = []
 dis =[]
 #model.lr = 0.1
 
-file_index = '_3'
+file_index = '_test'
 
 file_name = '_'.join(model.info.values())+file_index
 
@@ -51,10 +51,7 @@ print(file_name)
 
 
 temp_step =0
-#temp_loss = []
-#
-#temp_acc  = []
-
+temp_loss = []
 
 
 for ii in range(1000000): 
@@ -63,16 +60,13 @@ for ii in range(1000000):
         break
 
 
-#    model.global_step = 0
+    model.global_step = 0
     model.next_batch()   
     model.train_net( )
-#    model.calloss()
-#    model.calacc()
-#    temp_loss.append(model.v_vrloss)
-#    temp_acc.append(model.v_acc)
+    model.calloss()
+    temp_loss.append(model.v_vrloss)
     
     temp_step += 1
-#    model.lr *= (1.0 / (1.0 + model.decay*model.global_step))
         
 #
 #    if  temp_step >200 and  np.mean(temp_loss[-200:-100]) -  np.mean(temp_loss[-100:]) < -0.001 and model.lr > 1e-6:
