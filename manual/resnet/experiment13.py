@@ -6,8 +6,8 @@ from utils import progress_bar
  
 import pickle
 
-tradeoff = 0
-tradeoff2 =0
+tradeoff = 0  
+tradeoff2 =0.01
 
 model   = cifar10cnnnet(minibatchsize=128, learningrate = 0.01,tradeoff = tradeoff , tradeoff2=tradeoff2,momentum=0.9,decay = 0)
 
