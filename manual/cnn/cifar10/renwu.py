@@ -14,5 +14,5 @@ import os
 
 
  
-
-os.system('CUDA_VISIBLE_DEVICES=4 python experiment5.py')
+time.sleep(3600*4)
+! CUDA_VISIBLE_DEVICES=3 python experiment5.py
