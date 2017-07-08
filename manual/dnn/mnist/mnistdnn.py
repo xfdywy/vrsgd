@@ -16,18 +16,23 @@ from keras.datasets import mnist
 import tensorflow as tf
 from collections import OrderedDict
 slim = tf.contrib.slim
+from mnistdnnnetdef import mnistdnnnetdef
+
+
 
 trunc_normal = lambda stddev: tf.truncated_normal_initializer(stddev=stddev)
 import numpy as np
 import pickle
 class mnistnet:
-    def __init__(self,num_classes=10,minibatchsize=1,imagesize=28,dropout_keep_prob=1 ,scope='cifarnet' ,learningrate = 0.001,momentum = 0.5,tradeoff=0,decay = 0):
+    def __init__(self,num_classes=10,minibatchsize=1,imagesize=28,dropout_keep_prob=1 ,
+                 scope='mnistnet' ,learningrate = 0.001,momentum = 0.5,
+                 tradeoff=0 , tradeoff2 = 0,weight_decay = 5e-4,decay = 0):
         self.num_classes=num_classes  
         self.batch_size=minibatchsize
         self.imagesize = imagesize
         #       self.dropout_keep_prob=dropout_keep_prob
         self.scope=scope 
-        self.prediction_fn=slim.softmax
+#        self.prediction_fn=slim.softmax
         self.is_training = True
 
 
@@ -39,7 +44,10 @@ class mnistnet:
 
         self.epoch = 0
         self.tradeoff = tradeoff
+        self.tradeoff2 = tradeoff2
+        self.wd = weight_decay
         self.info['tradeoff'] = str(self.tradeoff).replace('.','')
+        self.info['tradeoff2'] = str(self.tradeoff2).replace('.','')
         self.decay = decay
 
 
@@ -60,8 +68,10 @@ class mnistnet:
             self.x_train,self.y_train,self.x_test,self.y_test = data
             
         self.x_train  =  self.x_train / 255.0
+        self.x_train = np.expand_dims(self.x_train,-1)
 #        self.y_train  = self.y_train / 255.0
         self.x_test  = self.x_test / 255.0
+        self.x_test = np.expand_dims(self.x_test,-1)
 #        self.t_test  = self.t_test / 255.0
             
         self.train_data_num = len(self.x_train)
@@ -77,43 +87,30 @@ class mnistnet:
 #        self.end_points = {}
         tf.reset_default_graph()
         self.learningrate = tf.placeholder('float32',[ ])
-        self.images = tf.placeholder('float32',[None,self.imagesize,self.imagesize ])
+#        self.images = tf.placeholder('float32',[None,self.imagesize,self.imagesize,1 ])
         self.label = tf.placeholder('int32',[None,])
-        self.dropout_keep_prob = tf.placeholder('float32',[])
+#        self.dropout_keep_prob = tf.placeholder('float32',[])
         self.momentum = tf.placeholder('float32',[])
         
 #        28*28 --- 64 ， 64 --- 32， 32 --- 16 ， 16 ----10
         
         
         
-        with tf.variable_scope(self.scope, 'CifarNet', [self.images, self.num_classes]):
+        with tf.variable_scope(self.scope):
 
-
-            para_fc1 = tf.get_variable('para_fc1',[28*28,512])
-            para_fc1_bias = tf.get_variable('para_fc1_bias',[ 512])
+            model = mnistdnnnetdef(imagesize = self.imagesize)    
+            model.buildnet()
+            self.images = model.images
+            self.dropout_keep_prob = model.dropout_keep_prob
+            self.logits = model.logits
+            self.prob = tf.nn.softmax(self.logits)
+            self.parameters = tf.trainable_variables()
             
-#            para_fc2 = tf.get_variable('para_fc2',[64,32])
-#            para_fc2_bias = tf.get_variable('para_fc2_bias',[ 32])
-#            
-#            para_fc3 = tf.get_variable('para_fc3',[32,16])
-#            para_fc3_bias = tf.get_variable('para_fc3_bias',[ 16])
-#            
-            para_fc5 = tf.get_variable('para_fc5',[512,10])
-            para_fc5_bias = tf.get_variable('para_fc5_bias',[ 10])
-
+            print(len(self.parameters))
             
-            net = tf.contrib.slim.flatten(self.images  )
-            net = tf.nn.relu(tf.matmul(net,para_fc1) + para_fc1_bias)
-            net = tf.nn.dropout(x = net, keep_prob =  self.dropout_keep_prob , name='dropout1') 
-            
-#            net = tf.nn.relu(tf.matmul(net,para_fc2) + para_fc2_bias)
-#            net = tf.nn.dropout(x = net, keep_prob =  self.dropout_keep_prob , name='dropout2') 
-#            
-#            net = tf.nn.relu(tf.matmul(net,para_fc3) + para_fc3_bias)
-#            net = tf.nn.dropout(x = net, keep_prob =  self.dropout_keep_prob , name='dropout3') 
+            self.weight_decay = tf.add_n([tf.nn.l2_loss(x) for x in self.parameters])
             
             
-            self.logits = tf.matmul(net,para_fc5) + para_fc5_bias
             
             self.loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logits,labels =self.label )
             
@@ -121,9 +118,15 @@ class mnistnet:
             self.meanloss = tf.reduce_mean(self.loss)
             
             self.var = tf.reduce_mean(tf.pow(self.loss - tf.reduce_mean(self.loss),2)) 
-            self.vrloss = self.meanloss + self.tradeoff * self.var
             
-            self.parameters = tf.trainable_variables()
+            self.entropy =-1 * tf.reduce_mean( tf.reduce_sum( self.prob * tf.nn.log_softmax(self.logits),1 ) )
+
+            
+            self.vrloss = self.meanloss +self.wd * self.weight_decay + self.tradeoff * self.var + self.tradeoff2 * self.entropy
+
+
+            
+#            self.parameters = tf.trainable_variables()
             
             self.grad_op = tf.gradients(self.vrloss, self.parameters)
             self.hess_op = None
@@ -163,14 +166,13 @@ class mnistnet:
         self.mode_train = mode_train
 #        self.decay = 0
         
-        if mode_train == 1: 
-#            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
+        if mode_train == 1:           
             self.info['opti_method'] = 'sgd'
 #            self.decay = 1e-8
  
             
         elif mode_train ==2 :
-#            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
+            # self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
             self.info['opti_method'] = 'momentum'
  
             
@@ -182,10 +184,38 @@ class mnistnet:
             pass
      
             
-    def fill_train_data(self):
-        self.datax = self.x_train
-        self.datay = self.y_train
-    
+#    def fill_train_data(self):
+#        self.datax = self.x_train[:20000]
+#        self.datay = self.y_train[:20000]
+
+    def evaluate_train(self):
+#        vrlosstemp = []
+#        meanlosstemp = []
+        acctemp = []
+#        vartemp = []
+        losstemp = []
+        entropytemp = []
+        
+        
+        for ii in range(5):
+            ind = [ii*10000 , (ii+1)*10000]
+            self.datax = self.x_train[ind[0] : ind[1]]
+            self.datay = self.y_train[ind[0] : ind[1]]
+ 
+            self.calacc()
+            self.calentropy()
+            
+            acctemp.append(self.v_acc) 
+            losstemp.append(self.calallloss())
+            entropytemp.append(self.v_entropy)
+            
+        self.v_acc = np.mean(acctemp)
+        self.v_meanloss = np.mean(losstemp)
+        self.v_var = np.var(losstemp)
+        self.v_vrloss = self.v_meanloss + self.v_var * self.tradeoff
+        self.v_entropy = np.mean(self.v_entropy)
+            
+     
     def fill_test_data(self):
         self.datax = self.x_test
         self.datay = self.y_test
@@ -230,15 +260,17 @@ class mnistnet:
                      self.learningrate : self.lr , self.dropout_keep_prob : self.dp,
                      self.momentum : self.mt}
         
-        if mode_train == 1:           
+        if mode_train == 1:      
+            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
 #            self.info['opti_method'] = 'sgd'
             self.sess.run(self.train_sgd,self.feed_dict)
-            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
+            # self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
             
         elif mode_train ==2 :
             self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
 #            self.info['opti_method'] = 'momentum'
             self.sess.run(self.train_momentum,self.feed_dict)
+
             
         elif mode_train ==3:
 #            self.info['opti_method'] = 'adam'
@@ -270,8 +302,15 @@ class mnistnet:
         self.v_meanloss = self.sess.run(self.meanloss,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
         self.v_vrloss = self.sess.run(self.vrloss,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
         self.v_var = self.sess.run(self.var,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
- 
-            
+        self.v_entropy = self.sess.run(self.entropy,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
+    
+    def calmeanloss(self):
+
+        self.v_meanloss = self.sess.run(self.meanloss,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
+    
+
+  
+
     def calacc(self):
         predict = self.sess.run(self.logits,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
         predict = np.argmax(predict,1)
@@ -281,34 +320,44 @@ class mnistnet:
     def eval_grad(self ):
         v_grad = self.sess.run(self.grad_op,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
         self.v_grad = v_grad
-        self.v_grad_norm = np.linalg.norm(v_grad) / 1.0 / len(v_grad)
-        self.v_grad_max = np.max(v_grad)
-        self.v_grad_min = np.min(v_grad)
-#        self.v_grad_upper = 
+        self.cal_norm()
+#        self.cal_norm_max()
+#        self.cal_norml1()
+    def calallloss(self):
+        return(self.sess.run(self.loss,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp}))
+    def calentropy(self):
+        self.v_entropy = self.sess.run(self.entropy,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
         
-        
-        
-    def eval_hess(self):
-        if self.hess_op == None:
-            self.hess_op = tf.hessians(self.meanloss,self.parameters)
-        self.v_hess = self.sess.run(self.hess_op, feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
-        
-        
+#    def eval_hess(self):
+#        if self.hess_op == None:
+#            self.hess_op = tf.hessians(self.meanloss,self.parameters)
+#        self.v_hess = self.sess.run(self.hess_op, feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
+#        
+#        
         
     def eval_weight(self):
         self.v_weight  = self.sess.run(self.parameters) 
         
-
-        
  
         
-    def save_model(self , name):
-        tfmodel_name = name + '_' + '_'.join(self.info.values())
-        self.saver.save(self.sess,'./save/'+tfmodel_name)
-    def save_weight(self,name):    
-        tfmodel_name = name + '_' + '_'.join(self.info.values())
-        with open('./save/dnn/'+tfmodel_name+'.pkl','wb') as f:
-            pickle.dump(self.v_weight , f)
+#    def save_model(self ,path, name):
+#        tfmodel_name = name + '_' + '_'.join(self.info.values())
+#        self.saver.save(self.sess,path+tfmodel_name)
+#    def save_weight(self,name):    
+#        tfmodel_name = name + '_' + '_'.join(self.info.values())
+#        with open('./save/dnn/'+tfmodel_name+'.pkl','wb') as f:
+#            pickle.dump(self.v_weight , f)
+            
+            
+    def cal_norm(self):
+       self.v_grad_norm_l2 =  np.array([np.linalg.norm(np.ravel(x))  for x in self.v_grad])
+       self.v_grad_norm_max =  np.array([np.linalg.norm(np.ravel(x),np.inf)  for x in self.v_grad])
+       self.v_grad_norm_l1 =  np.array([np.linalg.norm(np.ravel(x),1)  for x in self.v_grad])
+            
+        
+        
+        
+        
         
         
         

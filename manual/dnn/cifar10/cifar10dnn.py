@@ -121,16 +121,16 @@ class cifar10net:
 #            para_fc5_bias = tf.reshape(tf.slice(parameters,  [begin ], [10 ] ), [10 ])
 #            begin += 10
 
-            para_fc1 = tf.get_variable('para_fc1',[32*32*3,256])
-            para_fc1_bias = tf.get_variable('para_fc1_bias',[ 256])
+            para_fc1 = tf.get_variable('para_fc1',[32*32*3,512])
+            para_fc1_bias = tf.get_variable('para_fc1_bias',[ 512])
             
-            para_fc2 = tf.get_variable('para_fc2',[256,128])
-            para_fc2_bias = tf.get_variable('para_fc2_bias',[ 128])
+#            para_fc2 = tf.get_variable('para_fc2',[512,256])
+#            para_fc2_bias = tf.get_variable('para_fc2_bias',[ 256])
             
-            para_fc3 = tf.get_variable('para_fc3',[128,64])
-            para_fc3_bias = tf.get_variable('para_fc3_bias',[ 64])
+#            para_fc3 = tf.get_variable('para_fc3',[128,64])
+#            para_fc3_bias = tf.get_variable('para_fc3_bias',[ 64])
             
-            para_fc5 = tf.get_variable('para_fc5',[64,10])
+            para_fc5 = tf.get_variable('para_fc5',[512,10])
             para_fc5_bias = tf.get_variable('para_fc5_bias',[ 10])
 
             
@@ -138,16 +138,16 @@ class cifar10net:
             net = tf.nn.relu(tf.matmul(net,para_fc1) + para_fc1_bias)
             net = tf.nn.dropout(x = net, keep_prob =  self.dropout_keep_prob , name='dropout1') 
             
-            net = tf.nn.relu(tf.matmul(net,para_fc2) + para_fc2_bias)
-            net = tf.nn.dropout(x = net, keep_prob =  self.dropout_keep_prob , name='dropout2') 
-            
-            net = tf.nn.relu(tf.matmul(net,para_fc3) + para_fc3_bias)
-            net = tf.nn.dropout(x = net, keep_prob =  self.dropout_keep_prob , name='dropout3') 
+#            net = tf.nn.relu(tf.matmul(net,para_fc2) + para_fc2_bias)
+#            net = tf.nn.dropout(x = net, keep_prob =  self.dropout_keep_prob , name='dropout2') 
+#            
+#            net = tf.nn.relu(tf.matmul(net,para_fc3) + para_fc3_bias)
+#            net = tf.nn.dropout(x = net, keep_prob =  self.dropout_keep_prob , name='dropout3') 
             
             
             self.logits = tf.matmul(net,para_fc5) + para_fc5_bias
             
-            y_one_hot = tf.one_hot(self.label,10)
+#            y_one_hot = tf.one_hot(self.label,10)
  
             
             self.loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits = self.logits,labels = self.label)
