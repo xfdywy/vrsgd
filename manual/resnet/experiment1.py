@@ -8,8 +8,9 @@ import pickle
 
 tradeoff = 0
 tradeoff2 =0
-
-model   = cifar10cnnnet(minibatchsize=128, learningrate = 0.1,tradeoff = tradeoff , tradeoff2=tradeoff2,momentum=0.9,decay = 0)
+weight_decay = 1e-4
+model   = cifar10cnnnet(minibatchsize=128, learningrate = 0.1,tradeoff = tradeoff ,
+     tradeoff2=tradeoff2,weight_decay=weight_decay,momentum=0.1,decay = 0)
 
 
 model.buildnet()
@@ -69,7 +70,7 @@ model.train_net()
 model.calacc()
 model.calloss()
  
-
+print(model.info)
 for ii in range(65000): 
 
     # if model.epoch >30:

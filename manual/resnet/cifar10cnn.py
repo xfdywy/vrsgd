@@ -25,14 +25,17 @@ import tensorflow as tf
 
 slim = tf.contrib.slim
 from collections import OrderedDict
-
+from utils import transform_train,transform_test
 
 trunc_normal = lambda stddev: tf.truncated_normal_initializer(stddev=stddev)
 import numpy as np
 import pickle
+import os
+
+
 class cifar10cnnnet:
     def __init__(self,num_classes=10,minibatchsize=1,imagesize=32,dropout_keep_prob=1 ,
-                 scope='cifarnet' ,learningrate = 0.001,momentum = 0.9,weight_decay=5e-4,
+                 scope='cifarnet' ,learningrate = 0.1,momentum = 0.9,weight_decay=1e-4,
                  tradeoff = 0,decay=0,tradeoff2=0,n_resnet=20):
        self.num_classes=num_classes  
        self.batch_size=minibatchsize
@@ -64,18 +67,30 @@ class cifar10cnnnet:
 #       self.learningrate = learningrate
 
 
-    def loaddata(self,data = None):
-        if data is None : 
-            print(1111)
+    def loaddata(self,data = 'cifar10data.pkl'):
+        if os.path.exists(data) : 
+            print('load from data')
+            with open(data,'rb') as f:
+                self.x_train,self.y_train,self.x_test,self.y_test = pickle.load(f)
+            
+
+        else:
+            print('load from keras and preprocess...')
 
             (self.x_train, self.y_train), (self.x_test, self.y_test) = cifar10.load_data()
-        else:
-            self.x_train,self.y_train,self.x_test,self.y_test = data
             
-        self.x_train  =  self.x_train / 255.0
-        self.y_train  = self.y_train[:,0]
-        self.x_test  = self.x_test / 255.0
-        self.y_test  = self.y_test[:,0]
+            self.y_train  = self.y_train[:,0]
+            self.y_test  = self.y_test[:,0]
+            
+            self.x_train = transform_train(self.x_train,padding=4,size=32)
+            self.x_test = transform_test(self.x_test   )
+            
+            with open('cifar10data.pkl','wb') as f:
+                pickle.dump([self.x_train,self.y_train,self.x_test,self.y_test] , f)
+            print('saved to file done!')
+            
+
+
             
         self.train_data_num = len(self.x_train)
         self.test_data_num = len(self.x_test)

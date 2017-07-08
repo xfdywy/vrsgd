@@ -14,8 +14,6 @@ from __future__ import print_function
 from keras.datasets import cifar10
 
 import keras
-from keras.datasets import cifar10
-from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Flatten
 from keras.layers import Conv2D, MaxPooling2D
@@ -25,17 +23,19 @@ import tensorflow as tf
 
 slim = tf.contrib.slim
 from collections import OrderedDict
-
+from utils import transform_train,transform_test
 
 trunc_normal = lambda stddev: tf.truncated_normal_initializer(stddev=stddev)
 import numpy as np
 import pickle
+import os
 class cifar10cnnnet:
-    def __init__(self,num_classes=10,minibatchsize=1,imagesize=32,dropout_keep_prob=1 ,scope='cifarnet' ,learningrate = 0.001,momentum = 0.5,tradeoff = 0,decay=0,tradeoff2=0):
+    def __init__(self,num_classes=10,minibatchsize=1,imagesize=32,dropout_keep_prob=1,
+                 scope='cifarnet' ,learningrate = 0.001,momentum = 0.5,
+                 tradeoff = 0,decay=0,tradeoff2=0,weight_decay = 0):
        self.num_classes=num_classes  
        self.batch_size=minibatchsize
        self.imagesize = imagesize
-#       self.dropout_keep_prob=dropout_keep_prob
        self.scope=scope 
        self.prediction_fn=slim.softmax
        self.is_training = True
@@ -45,11 +45,13 @@ class cifar10cnnnet:
        self.lr = self.lr0 = learningrate
        self.dp = dropout_keep_prob
        self.mt = momentum
+       self.wd = weight_decay
        
        self.epoch = 0
        self.tradeoff = tradeoff
        self.tradeoff2 = tradeoff2
        self.info['tradeoff'] = str(self.tradeoff).replace('.','')
+       self.info['tradeoff2'] = str(self.tradeoff2).replace('.','')
        self.decay = decay
        
 
@@ -60,18 +62,30 @@ class cifar10cnnnet:
 #       self.learningrate = learningrate
 
 
-    def loaddata(self,data = None):
-        if data is None : 
-            print(1111)
+    def loaddata(self,data = 'cifar10data.pkl'):
+        if os.path.exists(data) : 
+            print('load from data')
+            with open(data,'rb') as f:
+                self.x_train,self.y_train,self.x_test,self.y_test = pickle.load(f)
+            
+
+        else:
+            print('load from keras and preprocess...')
 
             (self.x_train, self.y_train), (self.x_test, self.y_test) = cifar10.load_data()
-        else:
-            self.x_train,self.y_train,self.x_test,self.y_test = data
             
-        self.x_train  =  self.x_train / 255.0
-        self.y_train  = self.y_train[:,0]
-        self.x_test  = self.x_test / 255.0
-        self.y_test  = self.y_test[:,0]
+            self.y_train  = self.y_train[:,0]
+            self.y_test  = self.y_test[:,0]
+            
+            self.x_train = transform_train(self.x_train,padding=4,size=32)
+            self.x_test = transform_test(self.x_test   )
+            
+            with open('cifar10data.pkl','wb') as f:
+                pickle.dump([self.x_train,self.y_train,self.x_test,self.y_test] , f)
+            print('saved to file done!')
+            
+
+
             
         self.train_data_num = len(self.x_train)
         self.test_data_num = len(self.x_test)
@@ -96,7 +110,7 @@ class cifar10cnnnet:
         
         
         
-        with tf.variable_scope(self.scope, 'CifarNet', [self.images, self.num_classes]):
+        with tf.variable_scope(self.scope ):
         
 
             # model = Sequential()
@@ -104,6 +118,8 @@ class cifar10cnnnet:
             model.buildnet()
             self.images = model.images
             self.dropout_keep_prob = model.dropout_keep_prob
+            self.logits = model.logits
+            self.prob = model.prob
 #            net = Conv2D(32, (3, 3), padding='same',activation='relu' )(self.images)
 #            net = Conv2D(32, (3, 3), padding='same',activation='relu' )(net)
 #            net = MaxPooling2D((2, 2) , padding='same')(net)
@@ -122,6 +138,8 @@ class cifar10cnnnet:
 #            self.prob = tf.nn.softmax(self.logits)
 
              
+            self.parameters = tf.trainable_variables()
+            self.weight_decay = tf.add_n([tf.nn.l2_loss(x) for x in self.parameters])
 
 
             
@@ -132,9 +150,8 @@ class cifar10cnnnet:
             
             self.entropy = -1 * tf.reduce_mean( tf.reduce_sum( self.prob * tf.log(self.prob),1 ) )
             
-            self.vrloss = self.meanloss + self.tradeoff * self.var + self.tradeoff2 * self.entropy
+            self.vrloss = self.meanloss + self.wd*self.weight_decay + self.tradeoff * self.var + self.tradeoff2 * self.entropy
 
-            self.parameters = tf.trainable_variables()
             
             self.grad_op = tf.gradients(self.vrloss, self.parameters)
             self.hess_op = None
@@ -153,7 +170,6 @@ class cifar10cnnnet:
             self.saver = tf.train.Saver()
             self.info['nettype'] = 'cnn'
             
-     
     def init_net(self ):
         self.sess = tf.Session()
         self.sess.run(self.init_allvars)
@@ -182,7 +198,7 @@ class cifar10cnnnet:
  
             
         elif mode_train ==2 :
-            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
+            # self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
             self.info['opti_method'] = 'momentum'
  
             
@@ -278,12 +294,13 @@ class cifar10cnnnet:
             self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
 #            self.info['opti_method'] = 'sgd'
             self.sess.run(self.train_sgd,self.feed_dict)
-            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
+            # self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
             
         elif mode_train ==2 :
             self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
 #            self.info['opti_method'] = 'momentum'
             self.sess.run(self.train_momentum,self.feed_dict)
+
             
         elif mode_train ==3:
 #            self.info['opti_method'] = 'adam'
@@ -316,7 +333,14 @@ class cifar10cnnnet:
         self.v_vrloss = self.sess.run(self.vrloss,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
         self.v_var = self.sess.run(self.var,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
         self.v_entropy = self.sess.run(self.entropy,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
-            
+    
+    def calmeanloss(self):
+
+        self.v_meanloss = self.sess.run(self.meanloss,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
+    
+
+  
+
     def calacc(self):
         predict = self.sess.run(self.logits,feed_dict = {self.images : self.datax , self.label : self.datay ,self.dropout_keep_prob : self.dp})
         predict = np.argmax(predict,1)
@@ -369,3 +393,4 @@ class cifar10cnnnet:
         
         
  
+   

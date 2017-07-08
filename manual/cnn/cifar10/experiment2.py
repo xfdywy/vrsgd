@@ -5,10 +5,12 @@ import matplotlib.pyplot as plt
  
 import pickle
 
-tradeoff = 0
-tradeoff2 = 1
+tradeoff = 1
+tradeoff2 = 0
+weight_decay = 0
 
-model   = cifar10cnnnet(minibatchsize=32, learningrate = 0.01,tradeoff = tradeoff , tradeoff2=tradeoff2,momentum=0.9,decay = 1e-6)
+model   = cifar10cnnnet(minibatchsize=32, learningrate = 0.01,tradeoff = tradeoff,
+                        tradeoff2=tradeoff2,momentum=0.1,weight_decay = weight_decay ,decay = 1e-6)
 
 
 model.buildnet()
@@ -72,29 +74,13 @@ for ii in range(1000000):
     model.next_batch()   
     model.train_net( )
 #    model.calloss()
-#    temploss.append(model.v_vrloss)
-    
-    
-#    temp_step += 1
-#        
-#
-#    if  temp_step >100 and  np.mean(temploss[-100:]) -np.mean(temploss[-50:])  < (model.lr/10000.0 ) and model.lr > 1e-6:
-#            model.lr = model.lr / 10.0
-#            temp_step = 0
-#            print('learning rate decrease to ', model.lr , np.mean(temploss[-100:-50]) -np.mean(temploss[-50:]))
-#            print('learning rate decrease to ', model.lr,file = printoutfile)
-
-
+ 
         
     
     
     
     if model.epoch_final == True:
-#        if model.lr > 1e-5 and model.epoch % 2 == 0:
-#            model.lr = model.lr / 2.0
-#            print('learning rate decrease to ', model.lr )
-#            print('learning rate decrease to ', model.lr,file = printoutfile)
-
+ 
         model.eval_weight()
         weight.append(model.v_weight)
 #            model.save_model('exp1')
