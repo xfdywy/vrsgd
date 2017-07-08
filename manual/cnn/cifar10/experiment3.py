@@ -2,15 +2,16 @@ from __future__ import print_function
 from cifar10cnn import cifar10cnnnet
 import numpy as np
 import matplotlib.pyplot as plt
- 
+from utils import progress_bar
 import pickle
 
-tradeoff = 0
-tradeoff2 = 1
+tradeoff = 1
+tradeoff2 = 0
 weight_decay = 0
-
-model   = cifar10cnnnet(minibatchsize=32, learningrate = 0.01,tradeoff = tradeoff,
-                        tradeoff2=tradeoff2,momentum=0.1,weight_decay = weight_decay ,decay = 1e-6)
+dropout_keep_prob = 0.75
+model   = cifar10cnnnet(minibatchsize=64, learningrate = 0.1,tradeoff = tradeoff,
+                        tradeoff2=tradeoff2,momentum=0.1,weight_decay = weight_decay ,
+                        dropout_keep_prob=dropout_keep_prob,decay = 1e-6)
 
 
 model.buildnet()
@@ -64,16 +65,25 @@ temp_step =0
 
 temploss = []
 
+
 for ii in range(1000000): 
 
     if model.epoch >30:
         break
+    if model.epoch == 10:
+        model.lr = 0.01
+    if model.epoch == 20:
+        model.lr = 0.001
 
 
     model.global_step = 0
     model.next_batch()   
     model.train_net( )
-#    model.calloss()
+    model.calacc()
+    model.calmeanloss()
+    if model.epoch >0:
+        progress_bar(model.data_point, model.one_epoch_iter_num,'epoch:%d, loss:%.5f, acc:%.5f, var:%.5f, entr:%.5f, lr:%.5f' %(model.epoch,model.v_meanloss,model.v_acc,model.v_var,model.v_entropy,model.lr))
+ 
  
         
     
@@ -86,15 +96,18 @@ for ii in range(1000000):
 #            model.save_model('exp1')
     
 
-    if model.data_point % (model.one_epoch_iter_num // 5 ) == 0 :
-        model.evaluate_train()
-        train_vrloss.append(model.v_vrloss)
-        train_meanloss.append(model.v_meanloss)    
-        train_var.append(model.v_var)
-        train_entropy.append(model.v_entropy) 
-        train_acc.append(model.v_acc)
-             
+    if model.data_point  % (model.one_epoch_iter_num // 2) == 0 :
+        model.dp = 1
+        if epoch<2:
+            model.evaluate_train()
+            train_vrloss.append(model.v_vrloss)
+            train_meanloss.append(model.v_meanloss)    
+            train_var.append(model.v_var)
+            train_entropy.append(model.v_entropy) 
+            train_acc.append(model.v_acc)
+                 
         model.fill_test_data()
+
         model.calloss()
         test_vrloss.append(model.v_vrloss)
         test_meanloss.append(model.v_meanloss)          
@@ -102,6 +115,7 @@ for ii in range(1000000):
         test_entropy.append(model.v_entropy)
         model.calacc()
         test_acc.append(model.v_acc)
+        model.dp = dropout_keep_prob
         
         
         print("##epoch:%d## meanloss : %f/%f , vrloss : %f/%f , acc : %f/%f , variance : %f/%f , entropy : %f/%f, lr : %f" 

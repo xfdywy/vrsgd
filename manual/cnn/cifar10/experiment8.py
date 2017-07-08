@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 from utils import progress_bar
 import pickle
 
-tradeoff = 2
-tradeoff2 = 0
+tradeoff = 0.1
+tradeoff2 = 1
 weight_decay = 0
 dropout_keep_prob = 0.75
 model   = cifar10cnnnet(minibatchsize=64, learningrate = 0.1,tradeoff = tradeoff,

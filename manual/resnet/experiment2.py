@@ -6,10 +6,11 @@ from utils import progress_bar
  
 import pickle
 
-tradeoff = 1
+tradeoff = 0.00001
 tradeoff2 =0
-
-model   = cifar10cnnnet(minibatchsize=128, learningrate = 0.01,tradeoff = tradeoff , tradeoff2=tradeoff2,momentum=0.9,decay = 0)
+weight_decay = 5e-4
+model   = cifar10cnnnet(minibatchsize=128, learningrate = 0.1,tradeoff = tradeoff ,
+     tradeoff2=tradeoff2,weight_decay=weight_decay,momentum=0.9,decay = 0)
 
 
 model.buildnet()
@@ -69,16 +70,16 @@ model.train_net()
 model.calacc()
 model.calloss()
  
-
+print(model.info , model.wd)
 for ii in range(65000): 
 
     # if model.epoch >30:
     #     break
 
-    if ii == 32000:
-        model.lr = model.lr/10.0
-    if ii == 64000:
-        model.lr = model.lr /10.0
+    if ii == 10000:
+        model.lr = 0.01
+    if ii == 30000:
+        model.lr = 0.001
 
 
     model.global_step = 0
@@ -102,8 +103,8 @@ for ii in range(65000):
 #            model.save_model('exp1')
     
 
-    if (model.data_point+1) % (model.one_epoch_iter_num // 3) == 0 :
-        model.evaluate_train()
+    if (model.data_point+1) % (model.one_epoch_iter_num // 1) == 0 :
+#        model.evaluate_train()
         train_vrloss.append(model.v_vrloss)
         train_meanloss.append(model.v_meanloss)    
         train_var.append(model.v_var)

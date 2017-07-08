@@ -144,12 +144,15 @@ class cifar10cnnnet:
 
             
             self.loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits = self.logits,labels = self.label)
-            self.meanloss = tf.reduce_mean(self.loss)
+            print(self.loss)
+            self.meanloss,self.var = tf.nn.moments(self.loss,[0])
             
-            self.var = tf.sqrt( tf.reduce_mean(tf.pow(self.loss - tf.reduce_mean(self.loss),2)) )
+            self.var = tf.sqrt( self.var)
             
-            self.entropy = -1 * tf.reduce_mean( tf.reduce_sum( self.prob * tf.log(self.prob),1 ) )
-            
+#            self.entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits = self.logits,labels = self.logits))
+
+            self.entropy = -1* tf.reduce_mean(tf.reduce_sum(self.prob  * tf.nn.log_softmax(self.logits),1))
+           
             self.vrloss = self.meanloss + self.wd*self.weight_decay + self.tradeoff * self.var + self.tradeoff2 * self.entropy
 
             
@@ -176,7 +179,7 @@ class cifar10cnnnet:
         self.global_step = 0
         self.data_point = 0
         self.epoch_final = False
-        
+ 
     def data_mode(self,mode_data) :
         
         self.mode_data = mode_data
@@ -291,13 +294,13 @@ class cifar10cnnnet:
                      self.momentum : self.mt}
         
         if mode_train == 1:      
-            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
+#            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
 #            self.info['opti_method'] = 'sgd'
             self.sess.run(self.train_sgd,self.feed_dict)
             # self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
             
         elif mode_train ==2 :
-            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
+#            self.lr *= (1.0 / (1.0 + self.decay * self.global_step))
 #            self.info['opti_method'] = 'momentum'
             self.sess.run(self.train_momentum,self.feed_dict)
 

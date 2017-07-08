@@ -13,7 +13,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Flatten
 from keras.layers import Conv2D, MaxPooling2D
-
+import tensorflow.contrib.slim.nets
 import tflearn
 
 class cifarnetdef():
@@ -27,19 +27,10 @@ class cifarnetdef():
         n=int(self.n)
         print('self n: ',self.n)
         
-        img_prep = tflearn.ImagePreprocessing()
-        img_prep.add_featurewise_zero_center(per_channel=True)
-
-        # Real-time data augmentation
-        img_aug = tflearn.ImageAugmentation()
-        img_aug.add_random_flip_leftright()
-        img_aug.add_random_crop([32, 32], padding=4)
+ 
 
         # Building Residual Network
-        net = tflearn.input_data(shape=[None, 32, 32, 3],
-#                                 placeholder = self.images,
-                                 data_preprocessing=img_prep,
-                                 data_augmentation=img_aug)
+        net = tflearn.input_data(shape=[None, 32, 32, 3] )
         net = tflearn.conv_2d(net, 16, 3, regularizer='L2', weight_decay=0.0005)
         net = tflearn.residual_block(net, n, 16)
         net = tflearn.residual_block(net, 1, 32, downsample=True)
@@ -55,8 +46,28 @@ class cifarnetdef():
         self.images = model.inputs[0]
 
 
+#
+#class cifarnetdef_resnet_slim():
+#    def __init__(self,imagesize,n,num_class=10):
+#        self.images = tf.placeholder('float32',[None,imagesize,imagesize ,3])
+#        self.dropout_keep_prob = tf.placeholder('float32',[])
+#        self.n = (n-2)/6
+#        assert((n-2) % 6 == 0 )
+#        self.num_class = num_class
+#    def buildnet(self):
+# 
+#        resnet = tensorflow.contrib.slim.nets.resnet_v1
+#        
+#        model = resnet.resnet_v1_50(inputs=self.images,num_classes=self.num_class)
+#        net = model[0]
+#        # Building Residual Network
+#        
+#        # Regression
+#        self.logits = tflearn.fully_connected(net, self.num_class)
+#        model = tflearn.DNN(self.logits)
+#        self.images = model.inputs[0]
 
-
+    
 
  
 

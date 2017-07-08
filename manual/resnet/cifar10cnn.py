@@ -36,7 +36,7 @@ import os
 class cifar10cnnnet:
     def __init__(self,num_classes=10,minibatchsize=1,imagesize=32,dropout_keep_prob=1 ,
                  scope='cifarnet' ,learningrate = 0.1,momentum = 0.9,weight_decay=1e-4,
-                 tradeoff = 0,decay=0,tradeoff2=0,n_resnet=20):
+                 tradeoff = 0,decay=0,tradeoff2=0,n_resnet=50):
        self.num_classes=num_classes  
        self.batch_size=minibatchsize
        self.imagesize = imagesize
@@ -134,9 +134,9 @@ class cifar10cnnnet:
 
             
             self.loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits = self.logits,labels = self.label)
-            self.meanloss = tf.reduce_mean(self.loss)
+            self.meanloss,self.var = tf.nn.moments(self.loss,[0])
             
-            self.var = tf.sqrt( tf.reduce_mean(tf.pow(self.loss - tf.reduce_mean(self.loss),2)) )
+            self.var = tf.sqrt( self.var )
             
             self.entropy =-1 * tf.reduce_mean( tf.reduce_sum( self.prob * tf.nn.log_softmax(self.logits),1 ) )
             
