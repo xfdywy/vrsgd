@@ -9,7 +9,7 @@ import pickle
 tradeoff = 0
 tradeoff2 =0
 
-model   = cifar10cnnnet(minibatchsize=128, learningrate = 0.01,tradeoff = tradeoff , tradeoff2=tradeoff2,momentum=0.9,decay = 0)
+model   = cifar10cnnnet(minibatchsize=128, learningrate = 0.1,tradeoff = tradeoff , tradeoff2=tradeoff2,momentum=0.9,decay = 0)
 
 
 model.buildnet()
@@ -102,7 +102,7 @@ for ii in range(65000):
 #            model.save_model('exp1')
     
 
-    if (model.data_point+1) % (model.one_epoch_iter_num // 3) == 0 :
+    if (model.data_point+1) % (model.one_epoch_iter_num // 1) == 0 :
         model.evaluate_train()
         train_vrloss.append(model.v_vrloss)
         train_meanloss.append(model.v_meanloss)    

@@ -18,13 +18,14 @@ import tflearn
 
 class cifarnetdef():
     def __init__(self,imagesize,n,num_class=10):
-        self.images = tf.placeholder('float32',[None,imagesize,imagesize ,3])
+#        self.images = tf.placeholder('float32',[None,imagesize,imagesize ,3])
         self.dropout_keep_prob = tf.placeholder('float32',[])
         self.n = (n-2)/6
         assert((n-2) % 6 == 0 )
         self.num_class = num_class
     def buildnet(self):
         n=int(self.n)
+        print('self n: ',self.n)
         
         img_prep = tflearn.ImagePreprocessing()
         img_prep.add_featurewise_zero_center(per_channel=True)
@@ -36,10 +37,10 @@ class cifarnetdef():
 
         # Building Residual Network
         net = tflearn.input_data(shape=[None, 32, 32, 3],
-                                 placeholder = self.images,
+#                                 placeholder = self.images,
                                  data_preprocessing=img_prep,
                                  data_augmentation=img_aug)
-        net = tflearn.conv_2d(net, 16, 3, regularizer='L2', weight_decay=0.0001)
+        net = tflearn.conv_2d(net, 16, 3, regularizer='L2', weight_decay=0.0005)
         net = tflearn.residual_block(net, n, 16)
         net = tflearn.residual_block(net, 1, 32, downsample=True)
         net = tflearn.residual_block(net, n-1, 32)
@@ -50,6 +51,8 @@ class cifarnetdef():
         net = tflearn.global_avg_pool(net)
         # Regression
         self.logits = tflearn.fully_connected(net, self.num_class)
+        model = tflearn.DNN(self.logits)
+        self.images = model.inputs[0]
 
 
 

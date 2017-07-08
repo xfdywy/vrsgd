@@ -31,7 +31,9 @@ trunc_normal = lambda stddev: tf.truncated_normal_initializer(stddev=stddev)
 import numpy as np
 import pickle
 class cifar10cnnnet:
-    def __init__(self,num_classes=10,minibatchsize=1,imagesize=32,dropout_keep_prob=1 ,scope='cifarnet' ,learningrate = 0.001,momentum = 0.5,tradeoff = 0,decay=0,tradeoff2=0,n_resnet=20):
+    def __init__(self,num_classes=10,minibatchsize=1,imagesize=32,dropout_keep_prob=1 ,
+                 scope='cifarnet' ,learningrate = 0.001,momentum = 0.9,weight_decay=5e-4,
+                 tradeoff = 0,decay=0,tradeoff2=0,n_resnet=20):
        self.num_classes=num_classes  
        self.batch_size=minibatchsize
        self.imagesize = imagesize
@@ -45,7 +47,7 @@ class cifar10cnnnet:
        self.lr = self.lr0 = learningrate
        self.dp = dropout_keep_prob
        self.mt = momentum
-       
+       self.wd = weight_decay
        self.epoch = 0
        self.tradeoff = tradeoff
        self.tradeoff2 = tradeoff2
@@ -109,9 +111,11 @@ class cifar10cnnnet:
  
             self.logits = model.logits
             self.prob = tf.nn.softmax(self.logits)
-
-             
-
+            self.parameters = tf.trainable_variables()
+            print(len(self.parameters))
+            
+            self.weight_decay = tf.add_n([tf.nn.l2_loss(x) for x in self.parameters])
+            
 
             
             self.loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits = self.logits,labels = self.label)
@@ -121,10 +125,9 @@ class cifar10cnnnet:
             
             self.entropy =-1 * tf.reduce_mean( tf.reduce_sum( self.prob * tf.nn.log_softmax(self.logits),1 ) )
             
-            self.vrloss = self.meanloss + self.tradeoff * self.var + self.tradeoff2 * self.entropy
+            self.vrloss = self.meanloss +self.wd * self.weight_decay#+ self.tradeoff * self.var + self.tradeoff2 * self.entropy
 
-            self.parameters = tf.trainable_variables()
-            print(len(self.parameters))
+
             
             self.grad_op = tf.gradients(self.vrloss, self.parameters)
             self.hess_op = None
