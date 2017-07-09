@@ -188,10 +188,10 @@ def transform_test(image_file  ):
     img = np.uint8(image_file)
 
     img = img/255.0
-    mean,std = [],[]
-    for ii in range(3):
-        mean.append( np.mean(img[:,:,:,ii] ))
-        std.append( np.std(img[:,:,:,ii] ))
+    mean,std = [0.4914, 0.4822, 0.4465], [0.2023, 0.1994, 0.2010]
+#    for ii in range(3):
+#        mean.append( np.mean(img[:,:,:,ii] ))
+#        std.append( np.std(img[:,:,:,ii] ))
 
     img = normalalize(img, mean, std)
 

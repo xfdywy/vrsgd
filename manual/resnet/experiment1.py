@@ -9,8 +9,9 @@ import pickle
 tradeoff = 0
 tradeoff2 =0
 weight_decay = 5e-4
+momentum = 0.9
 model   = cifar10cnnnet(minibatchsize=128, learningrate = 0.1,tradeoff = tradeoff ,
-     tradeoff2=tradeoff2,weight_decay=weight_decay,momentum=0.9,decay = 0)
+     tradeoff2=tradeoff2,weight_decay=weight_decay,momentum=momentum,decay = 0)
 
 
 model.buildnet()
@@ -19,7 +20,7 @@ model.loaddata()
 
 model.init_net()
 
-model.data_mode(2)
+model.data_mode(1)
 model.train_mode(2)
 
 epoch=0

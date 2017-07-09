@@ -127,9 +127,10 @@ class cifar10cnnnet:
             self.logits = model.logits
             self.prob = tf.nn.softmax(self.logits)
             self.parameters = tf.trainable_variables()
-            print(len(self.parameters))
+            print(len(self.parameters) , len([x for  x in self.parameters if '/b:' in x.name]) , n)
             
-            self.weight_decay = tf.add_n([tf.nn.l2_loss(x) for x in self.parameters])
+
+            self.weight_decay = tf.add_n([tf.nn.l2_loss(x) for x in self.parameters if '/b:' in x.name])
             
 
             
