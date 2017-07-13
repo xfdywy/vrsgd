@@ -1,0 +1,7 @@
+*.py[cod]
+pytorch/cifar10_resnet/data/*
+pytorch/cifar100_resnet/data/*
+experiment4.py
+testig.txt
+testig/123.txt
+testig/123/456.txt
