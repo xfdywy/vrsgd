@@ -64,7 +64,8 @@ trainset_test = torchvision.datasets.CIFAR100(root='./data', train=True, downloa
 trainloader_test = torch.utils.data.DataLoader(trainset_test, batch_size=1000, shuffle=False, num_workers=10)
 
 
-#classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+
+
 
 
 train_acc = []
@@ -102,15 +103,13 @@ info['entropy'] = str(args.entropy).replace('.','')
 info['epoch'] = str(args.epoch)
 
 print(info)
-file_index = '_entropy_sqrt'
+file_index = '_maskentropy_sqrt'
 
 file_name = '_'.join( info.values())+file_index
 
 printoutfile = open(file_name + '_printout.txt','w')
 
 print('#########' , args.entropy, args.lr, args.variance)
-
-
 
 
 
@@ -145,6 +144,19 @@ def adjust_learning_rate(optimizer,epoch,lr0) :
     lr = lr0 *(0.1 ** int(epoch >= 70) * (0.1 ** int(epoch >= 100) ) *(0.5 ** int(epoch >= 150) ))
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
+
+
+
+# Training
+
+
+
+
+
+
+
+
+
 
 
 
@@ -185,11 +197,20 @@ def train(epoch,all_res,filename):
         softmax = torch.nn.Softmax()(outputs)
         loss = -1 * torch.sum(log_softmax *one_hot_t,1)
 
-        entropy = -1* torch.mean(torch.sum(softmax * log_softmax,1))
+        _, predicted = torch.max(outputs.data, 1)
+        total += targets.size(0)
+        correct += predicted.eq(targets.data).cpu().sum()
+
+        mask = predicted.eq(targets.data)
+        mask = Variable(mask.float())
+
+
+        entropy = -1* torch.mean( mask * torch.sum(softmax * log_softmax,1))
+
+        # print(mask, entropy)
 
         variance =  torch.var(loss)
         variance = torch.sqrt(variance)
-
 
         meanloss = torch.mean(loss) + args.entropy * entropy + args.variance * variance
         # meanloss = criterion(outputs , targets )
@@ -198,9 +219,7 @@ def train(epoch,all_res,filename):
         optimizer.step()
 
         train_loss += meanloss.data[0]
-        _, predicted = torch.max(outputs.data, 1)
-        total += targets.size(0)
-        correct += predicted.eq(targets.data).cpu().sum()
+
         # print(batch_idx , train_loss, total , correct)
         progress_bar(batch_idx, len(trainloader), '(%d/%d) Loss: %.3f,Acc:%.3f%%,Lr %.4f,Var:%.4f,Entr:%.4f'
             % (correct, total ,train_loss/(batch_idx+1), 100.*correct/total,  optimizer.param_groups[0]['lr'],variance.data[0],entropy.data[0]))
@@ -234,12 +253,14 @@ def test(epoch,all_res,filename):
             one_hot_t = one_hot_t.cuda()
             targets_col = targets_col.cuda()
 
+        # loss = criterion(outputs, targets)
 
 
         one_hot_t = one_hot_t.scatter_(1,targets_col,1)
 
         one_hot_t = Variable(one_hot_t)
         inputs, targets = Variable(inputs,volatile=True), Variable(targets)
+        # targets_col = Variable(targets_col)
 
         outputs = net(inputs)
 
@@ -255,6 +276,7 @@ def test(epoch,all_res,filename):
         _, predicted = torch.max(outputs.data, 1)
         total += targets.size(0)
         correct += predicted.eq(targets.data).cpu().sum()
+        # print((test_loss.cpu().numpy()/(batch_idx+1) , 100.*correct/total, correct, total))
         progress_bar(batch_idx, len(testloader), '(%d/%d) Loss: %.3f,Acc:%.3f%%,Lr %.4f,Var:%.4f,Entr:%.4f'
             % (correct, total ,test_loss/(batch_idx+1), 100.*correct/total,  optimizer.param_groups[0]['lr'],variance.data[0],entropy[-1].data[0]))
 
@@ -312,6 +334,7 @@ def test_train(epoch,all_res,filename):
 
         one_hot_t = Variable(one_hot_t)
         inputs, targets = Variable(inputs,volatile=True), Variable(targets)
+        # targets_col = Variable(targets_col)
 
         outputs = net(inputs)
 
@@ -347,7 +370,6 @@ def test_train(epoch,all_res,filename):
 
 
  
-
 
 
 for epoch in range(start_epoch, start_epoch+args.epoch):
