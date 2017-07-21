@@ -1,3 +1,4 @@
+gpu=7
 CUDA_VISIBLE_DEVICES=2 python main_mask_entropy_sqrt.py --lr 0.1 --variance 0.1 --entropy 1 --epoch 180 --net resnet20 
 CUDA_VISIBLE_DEVICES=2 python main_mask_entropy_sqrt.py --lr 0.1 --variance 0.1 --entropy 0.1 --epoch 180 --net resnet20 
 CUDA_VISIBLE_DEVICES=2 python main_mask_entropy_sqrt.py --lr 0.1 --variance 0.1 --entropy 0.01 --epoch 180 --net resnet20 
