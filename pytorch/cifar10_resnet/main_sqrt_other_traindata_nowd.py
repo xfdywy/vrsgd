@@ -107,7 +107,7 @@ info['entropy'] = str(args.entropy).replace('.','')
 info['epoch'] = str(args.epoch)
 
 print(info)
-file_index = '_entropy_sqrt_other_traindata_nowd'+args.index
+file_index = '_entropy_sqrt_other_traindata_nowd_'+args.index
 
 file_name = '_'.join( info.values())+file_index
 

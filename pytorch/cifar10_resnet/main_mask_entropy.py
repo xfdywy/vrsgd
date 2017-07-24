@@ -105,7 +105,7 @@ info['entropy'] = str(args.entropy).replace('.','')
 info['epoch'] = str(args.epoch)
 
 print(info)
-file_index = '_maskentropy'
+file_index = '_maskentropy_'+args.index
 
 file_name = '_'.join( info.values())+file_index
 
