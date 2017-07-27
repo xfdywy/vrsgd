@@ -68,6 +68,7 @@ trainloader_test = torch.utils.data.DataLoader(trainset_test, batch_size=1000, s
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 
+
 train_acc = []
 train_meanloss =[]
 train_vrloss =[]

@@ -27,7 +27,7 @@ parser.add_argument('--variance', default=0, type=float, help='variance')
 parser.add_argument('--entropy', default=0, type=float, help='entropy')
 parser.add_argument('--epoch', default=160, type=int, help='epoch')
 parser.add_argument('--net', default='resnet20', type=str, help='net name')
-
+parser.add_argument('--index',default='0',type = str, help ='exp name index')
 
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 
@@ -109,7 +109,7 @@ file_index = '_maskentropy_nowd_sqrt'
 
 file_name = '_'.join( info.values())+file_index
 
-printoutfile = open(file_name + '_printout.txt','w')
+printoutfile = open(file_name + '_printout.txt','w')+args.index
 
 print('#########' , args.entropy, args.lr, args.variance , file_name)
 
